@@ -82,9 +82,13 @@ function needUnlocked(state: DeskState): string | null {
   return launchGate(state).locked ? "The pilot is locked. Finish onboarding first." : null;
 }
 
-export function confirmIncident(state: DeskState, id: string, personId: string, sourceId: string): Result {
+export const CONFIRM_METHODS = ["Phone call with the person", "Message from the utility's official number", "Written bulletin from the utility"] as const;
+
+export function confirmIncident(state: DeskState, id: string, personId: string, sourceId: string, method: string): Result {
   const lock = needUnlocked(state);
   if (lock) return { ok: false, error: lock };
+  if (!(CONFIRM_METHODS as readonly string[]).includes(method))
+    return { ok: false, error: "First get the confirmation yourself (call or message the utility), then say how you got it. This app does not contact anyone." };
   const src = state.sources.find((x) => x.id === sourceId);
   if (!isAuthorizedConfirmer(state, personId, src)) return { ok: false, error: `${personName(state, personId)} is not authorized to confirm official events from this source.` };
   const inc = state.incidents.find((i) => i.id === id);
@@ -93,7 +97,7 @@ export function confirmIncident(state: DeskState, id: string, personId: string, 
     ...state,
     incidents: state.incidents.map((i) => (i.id === id ? { ...i, status: "confirmed" as const, confirmedBy: personId, confirmSourceId: sourceId, utilityInputAt: state.now } : i)),
   };
-  return { ok: true, state: addLog(s, { at: state.now, type: "confirm", incidentId: id, text: `${id} confirmed by ${personName(state, personId)} via "${src?.label}". Utility input delay: ${state.now - inc.detectedAt} min.` }) };
+  return { ok: true, state: addLog(s, { at: state.now, type: "confirm", incidentId: id, text: `${id} confirmed by ${personName(state, personId)} via "${src?.label}" (${method.toLowerCase()}). Utility input delay: ${state.now - inc.detectedAt} min.` }) };
 }
 
 export function dismissIncident(state: DeskState, id: string, reason: string): Result {

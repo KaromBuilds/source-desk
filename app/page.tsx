@@ -350,6 +350,7 @@ function CandidateCard({ state, inc, run }: { state: DeskState; inc: Incident; r
   const [src, setSrc] = useState(confirmers[0]?.id ?? "");
   const [who, setWho] = useState("");
   const [reason, setReason] = useState("");
+  const [method, setMethod] = useState("");
   const source = state.sources.find((s) => s.id === src);
   const allowed = state.people.filter((p) => isAuthorizedConfirmer(state, p.id, source));
   return (
@@ -358,17 +359,26 @@ function CandidateCard({ state, inc, run }: { state: DeskState; inc: Incident; r
         <b>{inc.id} · {inc.sector} · unexpected pressure drop</b>
         <span><span className="chip warn">candidate · score {inc.modelScore}</span> <span className="help">flagged {fmt(inc.detectedAt)} · waiting {fmtDur(state.now - inc.detectedAt)}</span></span>
       </div>
-      <div className="grid3" style={{ marginTop: 8 }}>
+      <div className="note" style={{ background: "#fff", border: "1px solid #f1c27d" }}>
+        <b>This app does not call anyone.</b> First call or message {allowed.map((p) => p.name).join(" or ") || "an authorized person"} yourself. Ask: is there a supply problem in {inc.sector}? Only if they say yes, record it here.
+      </div>
+      <div className="grid4" style={{ marginTop: 8 }}>
         <label>Confirming source
           <select value={src} onChange={(e) => setSrc(e.target.value)}>{confirmers.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select>
         </label>
-        <label>Confirmed by
+        <label>Who confirmed it
           <select value={who} onChange={(e) => setWho(e.target.value)}>
             <option value="">Choose…</option>
             {state.people.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.role}){allowed.some((a) => a.id === p.id) ? "" : " · not authorized"}</option>)}
           </select>
         </label>
-        <div style={{ alignSelf: "end" }}><button className="btn primary" disabled={!who} onClick={() => run(E.confirmIncident(state, inc.id, who, src))}>Confirm with utility</button></div>
+        <label>How you got the confirmation
+          <select value={method} onChange={(e) => setMethod(e.target.value)}>
+            <option value="">Choose…</option>
+            {E.CONFIRM_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <div style={{ alignSelf: "end" }}><button className="btn primary" disabled={!who || !method} onClick={() => run(E.confirmIncident(state, inc.id, who, src, method))}>Record the utility&apos;s confirmation</button></div>
       </div>
       <div className="row">
         <input style={{ flex: 1, minWidth: 220 }} maxLength={180} placeholder="Why is it a false alarm? (e.g. engineer checked: logger reset)" value={reason} onChange={(e) => setReason(e.target.value)} />

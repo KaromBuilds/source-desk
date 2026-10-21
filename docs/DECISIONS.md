@@ -16,5 +16,16 @@
 - **Bug 3:** the segment counter assumed every message was GSM-7. *"Operación"* contains "ó", which forces UCS-2 (70 characters per SMS), so a notice shown as "1 SMS" really cost 3. That matters for the MX$15,000 pilot cap. **Fix:** a real GSM-7 / UCS-2 counter, plus `gsmSafe()` to swap accents outside GSM-7. "sáb" became "sab". The notice is back to 1 SMS.
 - Regression tests were added for all three. `npm test`: 22/22 pass. End-to-end run of T1–T12: 20/20 checks pass, no console errors, no horizontal scroll at phone width.
 
+## Session 1, second test pass (screenshots)
+- **Bug 4:** the map stayed green while Sector 2 had a candidate. Leaflet loads asynchronously, and the color update ran before the circles existed. **Fix:** the loader reads the latest status from a ref.
+- **Bug 5:** unexpected incidents showed a "-30 min" notice lead. Lead time only applies to scheduled cuts. **Fix:** it now shows "—".
+- **Bug 6:** escalation lines didn't say which incident they were about (two identical lines). **Fix:** every line starts with the incident ID and sector.
+
+## Persona test (Layer 1)
+- Synthetic user: **Maribel Ortega**, 41, the pilot coordinator (see `PERSONA_Asael_W11.pdf`).
+- **Worst confusion:** she read "Confirm with utility" as a button that contacts the utility, so she would have "confirmed" an incident nobody at the utility had confirmed. That breaks Condition 2.
+- **Fix (deployed):** the button is now "Record the utility's confirmation". It's disabled until she picks **who** confirmed it and **how** she got the confirmation (phone call / message from the official number / written bulletin). A box says plainly "This app does not call anyone" and names the people she should call. The method is saved in the log.
+- Logged, not fixed this week: "score 0.73" means nothing to her; "Condition 3" labels are team jargon; the locked banner doesn't link to where each item gets fixed; "Mark verified" looks mandatory but isn't part of the gate.
+
 ## Tomorrow's first move
-- Deploy, run the persona test on the live URL, fix the worst confusion, redeploy.
+- Turn the model score into plain words ("likely a real drop"), link each locked-banner item to its field, and hide Blueprint condition numbers behind a tooltip.

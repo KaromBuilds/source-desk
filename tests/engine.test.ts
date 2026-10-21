@@ -33,8 +33,9 @@ test("full day: candidate, confirm, publish, escalate, update", () => {
   s = E.advanceClock(s, 14 * 60, scored);
   const cand = s.incidents.find((i) => i.sector === "S2");
   assert.ok(cand && cand.status === "candidate");
-  assert.equal(E.confirmIncident(s, cand.id, "p4", "src1").ok, false, "community contact can't confirm");
-  s = ok(E.confirmIncident(s, cand.id, "p1", "src1"));
+  assert.equal(E.confirmIncident(s, cand.id, "p4", "src1", E.CONFIRM_METHODS[0]).ok, false, "community contact can't confirm");
+  assert.equal(E.confirmIncident(s, cand.id, "p1", "src1", "").ok, false, "persona fix: must say how the confirmation was obtained");
+  s = ok(E.confirmIncident(s, cand.id, "p1", "src1", E.CONFIRM_METHODS[0]));
   s = ok(E.publishNotice(s, cand.id));
   s = E.advanceClock(s, 18 * 60 + 30, scored); // due 18:00 missed
   assert.equal(s.incidents.find((i) => i.id === cand.id)?.escalationLevel, 1);
