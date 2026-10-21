@@ -58,7 +58,8 @@ export function launchGate(state: DeskState): { locked: boolean; missing: string
 
 // ---------- 12-hour rule ----------
 export function leadMinutes(i: Incident): number | null {
-  if (i.publishedAt === null) return null;
+  // Notice lead only means something for a scheduled cut; an unexpected failure has no "before".
+  if (i.kind !== "scheduled" || i.publishedAt === null) return null;
   return i.startsAt - i.publishedAt;
 }
 
@@ -138,10 +139,10 @@ export function runEscalation(state: DeskState, now: Minutes): DeskState {
     if (need <= i.escalationLevel) return i;
     const at = need === 1 ? (i.nextUpdateDue as number) + 1 : (i.nextUpdateDue as number) + SUPERVISOR_AFTER_MIN + 1;
     if (i.escalationLevel < 1) {
-      log.push({ at: (i.nextUpdateDue as number) + 1, type: "escalation", incidentId: i.id, text: `Update missed (due ${fmt(i.nextUpdateDue)}). Level 1: escalated to backup owner ${personName(state, utilitySrc?.backupId ?? null)}.` });
+      log.push({ at: (i.nextUpdateDue as number) + 1, type: "escalation", incidentId: i.id, text: `${i.id} (${i.sector}): update missed (due ${fmt(i.nextUpdateDue)}). Level 1: escalated to backup owner ${personName(state, utilitySrc?.backupId ?? null)}.` });
     }
     if (need === 2) {
-      log.push({ at, type: "escalation", incidentId: i.id, text: `Still no update 2 h later. Level 2: escalated to utility supervisor ${personName(state, state.agreement.supervisorId)}.` });
+      log.push({ at, type: "escalation", incidentId: i.id, text: `${i.id} (${i.sector}): still no update 2 h later. Level 2: escalated to utility supervisor ${personName(state, state.agreement.supervisorId)}.` });
     }
     return { ...i, escalationLevel: need };
   });

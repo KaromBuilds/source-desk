@@ -122,3 +122,13 @@ test("bug fix: SMS segments follow the real encoding", () => {
   assert.equal(sms.encoding, "GSM-7", "accents outside GSM-7 are swapped so the notice stays cheap");
   assert.equal(sms.segments, 1);
 });
+
+import { leadMinutes } from "../lib/rules.ts";
+test("bug fix: unexpected incidents have no notice lead", () => {
+  assert.equal(leadMinutes(incident({ kind: "unexpected", startsAt: 13 * 60, publishedAt: 14 * 60 })), null);
+  assert.equal(leadMinutes(incident()), 20 * 60);
+});
+test("bug fix: escalation log names the incident", () => {
+  const s = runEscalation({ ...unlocked(), incidents: [incident()] }, 15 * 60);
+  assert.match(s.log.at(-1)!.text, /^i1 \(S2\)/);
+});

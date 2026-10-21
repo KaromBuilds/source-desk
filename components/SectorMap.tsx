@@ -11,6 +11,9 @@ export default function SectorMap({ sectors, status }: { sectors: Sector[]; stat
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<LMap | null>(null);
   const dots = useRef<Partial<Record<SectorId, CircleMarker>>>({});
+  // Leaflet loads asynchronously, so keep the latest status where the loader can read it.
+  const latest = useRef(status);
+  latest.current = status;
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +23,7 @@ export default function SectorMap({ sectors, status }: { sectors: Sector[]; stat
       const m = L.map(el.current, { scrollWheelZoom: false, attributionControl: true }).setView([19.355, -99.0655], 14);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap contributors" }).addTo(m);
       for (const s of sectors) {
-        dots.current[s.id] = L.circleMarker([s.lat, s.lng], { radius: 26, weight: 2, color: "#fff", fillColor: COLOR.ok, fillOpacity: 0.8 })
+        dots.current[s.id] = L.circleMarker([s.lat, s.lng], { radius: 26, weight: 2, color: "#fff", fillColor: COLOR[latest.current[s.id] ?? "ok"], fillOpacity: 0.8 })
           .bindTooltip(`${s.name} · ${s.households} pilot households (count only)`, { permanent: false })
           .addTo(m);
         L.marker([s.lat, s.lng], { icon: L.divIcon({ className: "", html: `<div style="color:#fff;font-weight:700;font-size:13px;transform:translate(-8px,-9px)">${s.id}</div>` }), interactive: false }).addTo(m);
