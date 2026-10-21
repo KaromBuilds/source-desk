@@ -1,5 +1,7 @@
 # Source Desk
 
+**Live:** https://source-desk-rosy.vercel.app
+
 **Who confirms, who corrects, who gets called.** This is the operating desk behind the Agua a Tiempo MX water-notice pilot.
 
 A notice about a water cut is only useful if someone answers for it. Source Desk keeps the pilot **locked** until a utility contact accepts three duties: source verification, corrections and escalation. It also requires every information source to have a named owner and backup before anything goes out. Then it runs the day:
