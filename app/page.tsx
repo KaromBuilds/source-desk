@@ -433,7 +433,7 @@ function ActiveCard({ state, inc, run, setState }: { state: DeskState; inc: Inci
         </span>
       </div>
       <p className="help" style={{ margin: "6px 0" }}>Confirmed by {personName(state, inc.confirmedBy)}. Next update due: {fmt(inc.nextUpdateDue)}{overdue ? " (MISSED)" : ""}.</p>
-      <div><span className="help">SMS to households (Spanish) · {sms.chars} characters · {sms.segments} SMS · preview only, nothing is sent</span>
+      <div><span className="help">SMS to households (Spanish) · {sms.chars} characters · {sms.encoding} · {sms.segments} SMS per household · preview only, nothing is sent</span>
         <div className="sms">{sms.text}</div>
         <div className="help" style={{ marginTop: 4 }}>Same message goes by the offline route: {state.agreement.offlineRoute || "no route agreed"}</div>
       </div>

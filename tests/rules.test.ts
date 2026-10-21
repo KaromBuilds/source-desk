@@ -103,3 +103,22 @@ test("scorecard reports denominators and says inconclusive with no events", () =
   const sc = scorecard(unlocked());
   assert.equal(sc.scheduled.den, 0);
 });
+
+import { smsSegments, smsName } from "../lib/rules.ts";
+test("bug fix: model-raised SMS never states a start time as fact", () => {
+  const sms = buildSms(unlocked(), incident({ kind: "unexpected", origin: "model", detectedAt: 13 * 60 + 30, startsAt: 13 * 60 + 30, utilityInputAt: 14 * 60 }));
+  assert.doesNotMatch(sms.text, /desde/);
+  assert.match(sms.text, /confirmada lun 14:00/);
+});
+test("bug fix: no English source note inside the Spanish SMS", () => {
+  assert.equal(smsName("Mesa de Operación (utility bulletin)"), "Mesa de Operación");
+  assert.doesNotMatch(buildSms(unlocked(), incident()).text, /utility bulletin/);
+});
+test("bug fix: SMS segments follow the real encoding", () => {
+  assert.deepEqual(smsSegments("a".repeat(160)), { encoding: "GSM-7", units: 160, segments: 1 });
+  assert.equal(smsSegments("á" + "a".repeat(100)).encoding, "UCS-2");
+  assert.equal(smsSegments("á" + "a".repeat(100)).segments, 2);
+  const sms = buildSms(unlocked(), incident());
+  assert.equal(sms.encoding, "GSM-7", "accents outside GSM-7 are swapped so the notice stays cheap");
+  assert.equal(sms.segments, 1);
+});

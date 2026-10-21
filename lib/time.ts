@@ -20,8 +20,9 @@ export function fmtDur(min: number | null): string {
   return h ? `${sign}${h} h ${String(m).padStart(2, "0")} min` : `${sign}${m} min`;
 }
 
-// Spanish day names for household SMS
-const DIAS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
+// Spanish day names for household SMS. Kept inside the GSM-7 alphabet ("é" is in it, "á" is not),
+// so one accent doesn't triple the number of SMS.
+const DIAS = ["lun", "mar", "mié", "jue", "vie", "sab", "dom"];
 export function fmtEs(m: Minutes): string {
   const day = Math.floor(m / 1440);
   const rem = ((m % 1440) + 1440) % 1440;

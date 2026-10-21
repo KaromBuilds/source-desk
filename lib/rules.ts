@@ -70,20 +70,49 @@ export function meets12h(i: Incident): boolean | null {
 }
 
 // ---------- SMS (Condition 2: only confirmed facts) ----------
-export function buildSms(state: DeskState, i: Incident): { text: string; chars: number; segments: number } {
+// GSM-7 basic set (plus extension chars counted as 2). Anything else forces UCS-2: 70 chars per SMS.
+const GSM7 = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+const GSM7_EXT = "^{}\\[~]|€";
+
+export function smsSegments(text: string): { encoding: "GSM-7" | "UCS-2"; units: number; segments: number } {
+  const chars = [...text];
+  if (chars.every((c) => GSM7.includes(c) || GSM7_EXT.includes(c))) {
+    const units = chars.reduce((n, c) => n + (GSM7_EXT.includes(c) ? 2 : 1), 0);
+    return { encoding: "GSM-7", units, segments: units <= 160 ? 1 : Math.ceil(units / 153) };
+  }
+  const units = text.length;
+  return { encoding: "UCS-2", units, segments: units <= 70 ? 1 : Math.ceil(units / 67) };
+}
+
+/** Swap accents outside GSM-7 (á í ó ú Á Í Ó Ú) for plain letters so a notice stays 1 SMS instead of 3. */
+export function gsmSafe(text: string): string {
+  const map: Record<string, string> = { á: "a", í: "i", ó: "o", ú: "u", Á: "A", Í: "I", Ó: "O", Ú: "U", É: "E" };
+  return [...text].map((c) => map[c] ?? c).join("");
+}
+
+/** Source name for the household: drops the English note in parentheses. */
+export function smsName(label: string): string {
+  return label.replace(/\s*\([^)]*\)\s*$/, "").trim();
+}
+
+export function buildSms(state: DeskState, i: Incident): { text: string; chars: number; segments: number; encoding: "GSM-7" | "UCS-2" } {
   const src = state.sources.find((s) => s.id === i.confirmSourceId);
-  const who = src ? src.label : "sin confirmar";
+  const who = src ? smsName(src.label) : "sin confirmar";
   const sector = `Sector ${i.sector.slice(1)}`;
-  const what = i.kind === "scheduled" ? `Corte programado ${sector}, ${fmtEs(i.startsAt)}` : `Falla en suministro ${sector} desde ${fmtEs(i.startsAt)}`;
+  // A model-raised incident has no confirmed start time: the SMS only says when the utility confirmed it.
+  const what =
+    i.kind === "scheduled"
+      ? `Corte programado ${sector}, ${fmtEs(i.startsAt)}`
+      : `Falla en suministro ${sector}, confirmada ${fmtEs(i.utilityInputAt ?? i.detectedAt)}`;
   const cause = i.cause && i.causeSource ? `Causa: ${i.cause}` : "Causa: no confirmada";
   const rest = i.restoration !== null && i.restorationSource ? `Regreso estimado: ${fmtEs(i.restoration)}` : null;
-  const next = i.nextUpdateDue !== null ? `Prox. aviso: ${fmtEs(i.nextUpdateDue)}` : null;
-  const parts = [`Agua a Tiempo: ${what}.`, `Confirmo: ${who}.`, `${cause}.`];
+  const next = i.nextUpdateDue !== null ? `Siguiente aviso: ${fmtEs(i.nextUpdateDue)}` : null;
+  const parts = [`Agua a Tiempo: ${what}.`, `Confirma: ${who}.`, `${cause}.`];
   if (rest) parts.push(`${rest}.`);
   if (next) parts.push(`${next}.`);
-  const text = parts.join(" ");
-  const chars = text.length;
-  return { text, chars, segments: chars <= 160 ? 1 : Math.ceil(chars / 153) };
+  const text = gsmSafe(parts.join(" "));
+  const seg = smsSegments(text);
+  return { text, chars: seg.units, segments: seg.segments, encoding: seg.encoding };
 }
 
 // ---------- escalation (Condition 4) ----------
