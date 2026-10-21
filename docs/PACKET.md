@@ -22,7 +22,7 @@ The team chose a household tool. My part is the operating layer behind it. Befor
 
 ## 4. Mockup (image-generated)
 
-`docs/mockup.png`. Prompt used:
+`docs/mockup.png`, generated with Gemini (Canvas) from this prompt:
 
 > *Desktop web dashboard, calm and serious, white cards on a light gray background, deep teal accents. Title "Source Desk — Agua a Tiempo MX pilot". A red banner at the top: "Pilot LOCKED: utility contact has not accepted corrections and escalation. Field spending disabled." Left column: a map of four numbered water sectors as colored circles (no houses, sector level only). Right column: a small line chart labeled "Sector pressure (SIMULATED feed)" with a dip highlighted and a card "Candidate incident: Sector 2, model score 0.91, awaiting authorized confirmation". Below: three tabs "Correction queue", "Escalation log", "Source register", with a table of rows showing owner, due time and status chips (on time / late / escalated). An SMS preview bubble: "Agua a Tiempo: Corte programado Sector 2, jue 06:00. Confirmado por: Mesa de Operación. Causa: no confirmada." No ads, no household map.*
 
